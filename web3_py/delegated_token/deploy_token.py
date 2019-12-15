@@ -20,6 +20,8 @@ from helios_solc import install_solc, compile_files
 from hvm.utils.address import generate_contract_address
 from eth_utils import encode_hex
 
+from hvm.constants import CREATE_CONTRACT_ADDRESS
+
 W3_TX_DEFAULTS = {'gas': 0, 'gasPrice': 0, 'chainId': 0}
 
 #
@@ -27,7 +29,7 @@ W3_TX_DEFAULTS = {'gas': 0, 'gasPrice': 0, 'chainId': 0}
 #
 
 # First install the solidity binary v100.5.12 and above is helios solc
-from hvm.constants import CREATE_CONTRACT_ADDRESS
+
 
 install_solc('v100.5.12')
 
