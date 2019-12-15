@@ -47,8 +47,16 @@ contract_interface = compiled_sol['{}:{}'.format(solidity_file, contract_name)]
 # Websocket URL for hypothesis testnet bootnode. If you change this to mainnet, make sure you change network id too.
 websocket_url = 'wss://hypothesis1.heliosprotocol.io:30304'
 network_id = 42
-deployed_contract_address = '0x3256033babc1febe99340de5d8092592ccf4321c' # Replace this with the address of your contract
-deployer_contract_address = '0xaD6872B6f67aCAA3148C0Ccc49E7c4dE48B0becA'
+
+# Use this code to load a private key from a keystore file. You will deploy the contract from this account
+# We have provided a test keystore file that may contain a small amount of testnet HLS. But you should replace it
+# with your own.
+absolute_keystore_path = 'test_keystore.txt' # path to your keystore file
+keystore_password = 'LVTxfhwY4PvUEK8h' # your keystore password
+private_key = keys.PrivateKey(eth_keyfile.extract_key_from_keyfile(absolute_keystore_path, keystore_password))
+
+deployed_contract_address = '0xa5df294e3ee433b748d7cfc9814112fc5ae5bd27' # Replace this with the address of your contract
+deployer_contract_address = private_key.public_key.to_checksum_address()
 
 # Create web3
 w3 = Web3(WebsocketProvider(websocket_url))
@@ -69,7 +77,7 @@ transaction = {
 
 balance = HeliosDelegatedToken.caller(transaction=transaction).getBalance()
 
-print("The balance on chain {} is {}".format(deployer_contract_address, balance))
+print("The balance on chain {} before the transfer is {}".format(deployer_contract_address, balance))
 
 
 
@@ -79,14 +87,6 @@ print("The balance on chain {} is {}".format(deployer_contract_address, balance)
 #
 # Next, lets transfer some tokens to another chain
 #
-
-# Use this code to load a private key from a keystore file. You will deploy the contract from this account
-# We have provided a test keystore file that may contain a small amount of testnet HLS. But you should replace it
-# with your own.
-absolute_keystore_path = 'test_keystore.txt' # path to your keystore file
-keystore_password = 'LVTxfhwY4PvUEK8h' # your keystore password
-private_key = keys.PrivateKey(eth_keyfile.extract_key_from_keyfile(absolute_keystore_path, keystore_password))
-
 
 # Create a new account to send it to
 new_account = w3.hls.account.create()
@@ -112,6 +112,8 @@ signed_block, header_dict, transactions = prepare_and_sign_block(w3, private_key
 # Send it to the network
 response = w3.hls.sendRawBlock(signed_block['rawBlock'])
 
+print("Sending {} tokens from {} to {}".format(amount_to_transfer, deployer_contract_address, new_private_key.public_key.to_checksum_address()))
+
 
 
 
@@ -130,41 +132,44 @@ signed_block, header_dict, transactions = prepare_and_sign_block(w3, new_private
 # Send it to the network
 response = w3.hls.sendRawBlock(signed_block['rawBlock'])
 
+print("Receiving tokens on chain {}".format(new_private_key.public_key.to_checksum_address()))
 
 
 
 
 
+
+
 #
-# #
-# # Check the token balance on the chain you sent them to
-# #
-# transaction = {
-#                 'from': new_private_key.public_key.to_canonical_address(),
-#                 'to': new_private_key.public_key.to_canonical_address(),
-#                 'codeAddress': deployed_contract_address # The code address tells it where the smart contract code is.
-#             }
+# Check the token balance on the chain you sent them to
 #
-# balance = HeliosDelegatedToken.caller(transaction=transaction).getBalance()
+transaction = {
+                'from': new_private_key.public_key.to_canonical_address(),
+                'to': new_private_key.public_key.to_canonical_address(),
+                'codeAddress': deployed_contract_address # The code address tells it where the smart contract code is.
+            }
+
+balance = HeliosDelegatedToken.caller(transaction=transaction).getBalance()
+
+print("The balance on chain {} is {}".format(encode_hex(new_private_key.public_key.to_canonical_address()), balance))
+
+
+
+
 #
-# print("The balance on chain {} is {}".format(encode_hex(new_private_key.public_key.to_canonical_address()), balance))
 #
+# After the transfer computation is received, there will be some leftover gas that gets refunded to you. Lets receive that refund back onto our chain:
 #
-#
-#
-#
-# #
-# # After the transfer computation is received, there will be some leftover gas that gets refunded to you. Lets receive that refund back onto our chain:
-# #
-# # We must wait 10 seconds before we can add the next block
-# print("Waiting 10 seconds before receiving refund")
-# time.sleep(10)
-# # Get receivable transactions from the node
-# receivable_transactions = w3.hls.getReceivableTransactions(private_key.public_key.to_canonical_address())
-#
-# print('receivable_transactions', receivable_transactions)
-# # Prepare the header
-# signed_block, header_dict, transactions = prepare_and_sign_block(w3, private_key, receivable_transactions = receivable_transactions)
-#
-# # Send it to the network
-# response = w3.hls.sendRawBlock(signed_block['rawBlock'])
+# We must wait 10 seconds before we can add the next block
+print("Waiting 10 seconds before receiving gas refund")
+time.sleep(10)
+# Get receivable transactions from the node
+receivable_transactions = w3.hls.getReceivableTransactions(private_key.public_key.to_canonical_address())
+
+# Prepare the header
+signed_block, header_dict, transactions = prepare_and_sign_block(w3, private_key, receivable_transactions = receivable_transactions)
+
+# Send it to the network
+response = w3.hls.sendRawBlock(signed_block['rawBlock'])
+
+print('Gas refunds received successfully')

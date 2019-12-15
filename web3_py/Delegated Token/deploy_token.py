@@ -8,7 +8,7 @@
 #
 # Also make sure you have some testnet HLS in your account using our faucet at https://heliosprotocol.io/faucet
 #
-
+import time
 from eth_keys import keys
 import eth_keyfile
 from helios_web3 import HeliosWeb3 as Web3
@@ -88,3 +88,22 @@ response = w3.hls.sendRawBlock(signed_block['rawBlock'])
 deployed_contract_address = generate_contract_address(private_key.public_key.to_canonical_address(), transactions[0]['nonce'])
 print("Contract deployed to address {}".format(encode_hex(deployed_contract_address)))
 
+
+
+
+#
+# After the deploy takes place, it will send us a new transaction to mint the tokens on our chain. Lets receive that transaction
+#
+# We must wait 10 seconds before we can add the next block
+print("Waiting 10 seconds before receiving refund")
+time.sleep(10)
+# Get receivable transactions from the node
+receivable_transactions = w3.hls.getReceivableTransactions(private_key.public_key.to_canonical_address())
+
+# Prepare the header
+signed_block, header_dict, transactions = prepare_and_sign_block(w3, private_key, receivable_transactions = receivable_transactions)
+
+# Send it to the network
+response = w3.hls.sendRawBlock(signed_block['rawBlock'])
+
+print('Refunds received successfully')
