@@ -11,9 +11,7 @@ from eth_utils import to_checksum_address, encode_hex
 from helios_web3 import HeliosWeb3 as Web3
 from helios_web3 import IPCProvider, WebsocketProvider
 from helios_web3.utils.block_creation import prepare_and_sign_block
-
 from helios_solc import install_solc, compile_files
-
 import time
 
 W3_TX_DEFAULTS = {'gas': 0, 'gasPrice': 0, 'chainId': 0}
@@ -40,6 +38,7 @@ contract_interface = compiled_sol['{}:{}'.format(solidity_file, contract_name)]
 
 
 
+
 #
 # Next, we interact with the contract. Lets check the balance on the chain that deployed the contract.
 #
@@ -51,12 +50,12 @@ network_id = 42
 # Use this code to load a private key from a keystore file. You will deploy the contract from this account
 # We have provided a test keystore file that may contain a small amount of testnet HLS. But you should replace it
 # with your own.
-absolute_keystore_path = 'test_keystore.txt' # path to your keystore file
+keystore_path = 'test_keystore.txt' # path to your keystore file
 keystore_password = 'LVTxfhwY4PvUEK8h' # your keystore password
-private_key = keys.PrivateKey(eth_keyfile.extract_key_from_keyfile(absolute_keystore_path, keystore_password))
+private_key = keys.PrivateKey(eth_keyfile.extract_key_from_keyfile(keystore_path, keystore_password))
 
 deployed_contract_address = '0xa5df294e3ee433b748d7cfc9814112fc5ae5bd27' # Replace this with the address of your contract
-deployer_contract_address = private_key.public_key.to_checksum_address()
+deployer_wallet_address = private_key.public_key.to_checksum_address()
 
 # Create web3
 w3 = Web3(WebsocketProvider(websocket_url))
@@ -70,14 +69,15 @@ HeliosDelegatedToken = w3.hls.contract(
 # Build transaction to deploy the contract.
 
 transaction = {
-                'from': deployer_contract_address,
-                'to': deployer_contract_address,
+                'from': deployer_wallet_address,
+                'to': deployer_wallet_address,
                 'codeAddress': deployed_contract_address # The code address tells it where the smart contract code is.
             }
 
 balance = HeliosDelegatedToken.caller(transaction=transaction).getBalance()
 
-print("The balance on chain {} before the transfer is {}".format(deployer_contract_address, balance))
+print("The balance on chain {} before the transfer is {}".format(deployer_wallet_address, balance))
+
 
 
 
@@ -112,7 +112,7 @@ signed_block, header_dict, transactions = prepare_and_sign_block(w3, private_key
 # Send it to the network
 response = w3.hls.sendRawBlock(signed_block['rawBlock'])
 
-print("Sending {} tokens from {} to {}".format(amount_to_transfer, deployer_contract_address, new_private_key.public_key.to_checksum_address()))
+print("Sending {} tokens from {} to {}".format(amount_to_transfer, deployer_wallet_address, new_private_key.public_key.to_checksum_address()))
 
 
 
@@ -152,6 +152,9 @@ transaction = {
 balance = HeliosDelegatedToken.caller(transaction=transaction).getBalance()
 
 print("The balance on chain {} is {}".format(encode_hex(new_private_key.public_key.to_canonical_address()), balance))
+
+
+
 
 
 

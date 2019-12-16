@@ -50,15 +50,15 @@ contract_interface = compiled_sol['{}:{}'.format(solidity_file, contract_name)]
 websocket_url = 'wss://hypothesis1.heliosprotocol.io:30304'
 network_id = 42
 
-# Create web3
-w3 = Web3(WebsocketProvider(websocket_url))
-
 # Use this code to load a private key from a keystore file. You will deploy the contract from this account
 # We have provided a test keystore file that may contain a small amount of testnet HLS. But you should replace it
 # with your own.
-absolute_keystore_path = 'test_keystore.txt' # path to your keystore file
+keystore_path = 'test_keystore.txt' # path to your keystore file
 keystore_password = 'LVTxfhwY4PvUEK8h' # your keystore password
-private_key = keys.PrivateKey(eth_keyfile.extract_key_from_keyfile(absolute_keystore_path, keystore_password))
+private_key = keys.PrivateKey(eth_keyfile.extract_key_from_keyfile(keystore_path, keystore_password))
+
+# Create web3
+w3 = Web3(WebsocketProvider(websocket_url))
 
 # Create the web3 contract factory
 HeliosDelegatedToken = w3.hls.contract(
@@ -93,11 +93,14 @@ print("Contract deployed to address {}".format(encode_hex(deployed_contract_addr
 
 
 
+
+
+
 #
 # After the deploy takes place, it will send us a new transaction to mint the tokens on our chain. Lets receive that transaction
 #
 # We must wait 10 seconds before we can add the next block
-print("Waiting 10 seconds before receiving refund")
+print("Waiting 10 seconds before adding new block")
 time.sleep(10)
 # Get receivable transactions from the node
 receivable_transactions = w3.hls.getReceivableTransactions(private_key.public_key.to_canonical_address())
@@ -108,4 +111,4 @@ signed_block, header_dict, transactions = prepare_and_sign_block(w3, private_key
 # Send it to the network
 response = w3.hls.sendRawBlock(signed_block['rawBlock'])
 
-print('Refunds received successfully')
+print('Transaction received successfully!')
