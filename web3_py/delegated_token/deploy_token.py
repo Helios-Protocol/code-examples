@@ -53,7 +53,7 @@ network_id = 42
 # Use this code to load a private key from a keystore file. You will deploy the contract from this account
 # We have provided a test keystore file that may contain a small amount of testnet HLS. But you should replace it
 # with your own.
-keystore_path = 'test_keystore.txt' # path to your keystore file
+keystore_path = '../test_keystore.txt' # path to your keystore file
 keystore_password = 'LVTxfhwY4PvUEK8h' # your keystore password
 private_key = keys.PrivateKey(eth_keyfile.extract_key_from_keyfile(keystore_path, keystore_password))
 
