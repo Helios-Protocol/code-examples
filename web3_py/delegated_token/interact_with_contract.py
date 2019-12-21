@@ -13,6 +13,8 @@ from helios_web3 import IPCProvider, WebsocketProvider
 from helios_web3.utils.block_creation import prepare_and_sign_block
 from helios_solc import install_solc, compile_files
 import time
+import os
+from pathlib import Path
 
 W3_TX_DEFAULTS = {'gas': 0, 'gasPrice': 0, 'chainId': 0}
 
@@ -22,8 +24,9 @@ W3_TX_DEFAULTS = {'gas': 0, 'gasPrice': 0, 'chainId': 0}
 
 # First install the solidity binary v100.5.12 and above is helios solc
 from hvm.constants import CREATE_CONTRACT_ADDRESS
-
-install_solc('v100.5.12')
+# home = str(Path.home())
+# os.environ["SOLC_BINARY"] = home + "/.py-helios-solc/solc-v100.5.15/bin/solc"
+install_solc('v100.5.15')
 
 # Next, compile your file. We will compile the delegated token contract
 solidity_file = '../../smart_contracts/solidity/delegated_token.sol'

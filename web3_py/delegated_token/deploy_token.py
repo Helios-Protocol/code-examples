@@ -21,6 +21,8 @@ from hvm.utils.address import generate_contract_address
 from eth_utils import encode_hex
 
 from hvm.constants import CREATE_CONTRACT_ADDRESS
+import os
+from pathlib import Path
 
 W3_TX_DEFAULTS = {'gas': 0, 'gasPrice': 0, 'chainId': 0}
 
@@ -29,9 +31,9 @@ W3_TX_DEFAULTS = {'gas': 0, 'gasPrice': 0, 'chainId': 0}
 #
 
 # First install the solidity binary v100.5.12 and above is helios solc
-
-
-install_solc('v100.5.12')
+# home = str(Path.home())
+# os.environ["SOLC_BINARY"] = home + "/.py-helios-solc/solc-v100.5.15/bin/solc"
+install_solc('v100.5.15')
 
 # Next, compile your file. We will compile the delegated token contract
 solidity_file = '../../smart_contracts/solidity/delegated_token.sol'
