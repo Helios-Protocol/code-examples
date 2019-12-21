@@ -1,4 +1,4 @@
-pragma solidity ^100.5.11;
+pragma solidity ^100.5.14;
 
 import "./helpers/smart_contract_chain.sol";
 import "./helpers/safe_math.sol";
@@ -11,6 +11,9 @@ contract HeliosDelegatedToken is ExecuteOnSend, Ownable, SmartContractChain {
 
     // The balance of this token on the currently executing chain.
     uint256 balance;
+
+    // Mapping to store the receipt of transactions
+    mapping(bytes32 => bool) public receipts;
 
     // Variables for the smart contract chain.
     // Change these to suit your token needs!
@@ -64,6 +67,8 @@ contract HeliosDelegatedToken is ExecuteOnSend, Ownable, SmartContractChain {
         return balance;
     }
 
+
+
     /**
     * @dev Transfers tokens from one chain to another. This function needs to be called using a transaction
     * with execute_on_send = True
@@ -80,6 +85,36 @@ contract HeliosDelegatedToken is ExecuteOnSend, Ownable, SmartContractChain {
         }
     }
 
+    /**
+    * @dev Same as transfer, except it saves a receipt itentifier so that other contracts
+    * can check for a receipt to be sure that the transaction has arrived.
+    */
+    function transfer(uint256 amount, bytes32 receipt_identifier) public requireExecuteOnSendTx {
+        if(is_send()){
+            // This is the send side of the transaction. Here we subtract the amount from balance.
+            require(amount <= balance);
+            balance = balance.sub(amount);
+
+        }else{
+            // This is the receive side of the transaction. Here we add the amount to balance.
+            balance = balance.add(amount);
+            receipts[receipt_identifier] = true;
+        }
+    }
+
+    /**
+    * @dev Returns true if the transaction has been received, false otherwise
+    */
+    function transactionReceived(bytes32 receipt_identifier) public view returns (bool){
+        return receipts[receipt_identifier];
+    }
+
+    /**
+    * @dev Deletes a receipt from the mapping
+    */
+    function deleteReceipt(bytes32 receipt_identifier) public {
+        delete receipts[receipt_identifier];
+    }
 
     constructor() public {
 

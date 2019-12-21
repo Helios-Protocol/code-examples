@@ -1,4 +1,4 @@
-pragma solidity ^100.5.11;
+pragma solidity ^100.5.14;
 /**
  * @title SmartContractChain
  * @dev The SmartContractChain contract gives functionality that allows the contract to tell if
